@@ -9,6 +9,7 @@ class User(Base):
     username = Column(String)
     password = Column(String)
     devices = relationship("Device", back_populates="user")
+    colors = relationship("Color", back_populates="user")
 
 class Device(Base):
     __tablename__ = "devices"
@@ -24,8 +25,10 @@ class Color(Base):
     __tablename__ = "colors"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id_user = Column(Integer, ForeignKey('users.id'))
     hex_code = Column(String)
 
+    user = relationship("User", back_populates="colors")
     device_colors = relationship("DeviceColor", back_populates="color")
 
 

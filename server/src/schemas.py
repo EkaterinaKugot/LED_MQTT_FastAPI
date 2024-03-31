@@ -9,6 +9,7 @@ class DeviceBase(BaseModel):
     name: str
 
 class ColorBase(BaseModel):
+    id_user: int
     hex_code: str
 
 class DeviceColorBase(BaseModel):

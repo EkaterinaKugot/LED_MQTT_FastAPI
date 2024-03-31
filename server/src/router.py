@@ -68,7 +68,7 @@ def registration_form():
                 <input type="password" id="password" name="password" placeholder="Пароль" required><br><br>
                 <input type="submit" value="Зарегистрироваться">
             </form>
-            <a href="/registration">Регистрация</a>
+            <a href="/">Назад</a>
         </body>
     </html>
     """)
@@ -85,7 +85,7 @@ def processing_registration(username: str, password: str, db: Session = Depends(
 @router.post("/devices_colors")
 def devices_colors_form(db: Session = Depends(get_db)):
     devices = get_devices(db, current_user_id)
-    colors = get_colors(db)
+    colors = get_colors(db, current_user_id)
     option_device = ""
     for device in devices:
         option_device += f"<option value='{device.id}'>{device.name}</option>"
@@ -183,7 +183,7 @@ def add_color(db: Session = Depends(get_db)):
 
 @router.post("/аdding_color")
 def аdding_color(hex_code: str = Form(...), db: Session = Depends(get_db)):
-    color = Color(hex_code=hex_code)
+    color = Color(id_user=current_user_id, hex_code=hex_code)
     if not get_color_by_name(db, color):
         create_color(db, color)
     else:

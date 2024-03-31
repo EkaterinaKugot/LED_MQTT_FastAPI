@@ -65,8 +65,8 @@ def create_device(db: Session, device: DeviceBase):
     add_row(db, db_device)
     return True
 
-def get_colors(db: Session):
-    colors = db.query(Color).all()
+def get_colors(db: Session, current_user_id):
+    colors = db.query(Color).filter(Color.id_user == current_user_id).all()
     return colors
 
 def get_color_by_name(db: Session, color: ColorBase):
@@ -74,7 +74,7 @@ def get_color_by_name(db: Session, color: ColorBase):
     return bool(color1)
 
 def create_color(db: Session, color: ColorBase):
-    db_color = Color(hex_code=color.hex_code)
+    db_color = Color(id_user = color.id_user, hex_code=color.hex_code)
     add_row(db, db_color)
     return True
 
@@ -84,7 +84,7 @@ def add_row(db: Session, db_row):
     db.refresh(db_row)
 
 def deleting_repeat(db: Session, d_c: DeviceColorBase):
-    d_c1 = db.query(DeviceColor).filter(DeviceColor.device_id ==d_c.device_id).delete()
+    db.query(DeviceColor).filter(DeviceColor.device_id ==d_c.device_id).delete()
     db.commit()
 
 def add_device_color(db: Session, d_c: DeviceColorBase):
