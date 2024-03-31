@@ -11,6 +11,7 @@ router = APIRouter()
 models.Base.metadata.create_all(bind=engine)
 
 current_user_id = None
+current_user_name = None
 
 def get_db():
     db = SessionLocal()
@@ -42,10 +43,11 @@ def login_form():
 
 @router.post("/processing_login")
 def processing_login(username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
-    global current_user_id
+    global current_user_id, current_user_name
     user = UserBase(username=username, password=password)
     current_user_id = get_user_by_username_and_password(db, user)
     if current_user_id is not None:
+        current_user_name = get_user_by_id(db, current_user_id)
         return RedirectResponse("/devices_colors")
     else:
         raise HTTPException(status_code=401, detail="Incorrect username or password")
@@ -82,6 +84,7 @@ def processing_registration(username: str, password: str, db: Session = Depends(
     
 @router.post("/devices_colors")
 def login_form(db: Session = Depends(get_db)):
+    global current_user_name
     devices = get_devices(db, current_user_id)
     colors = get_colors(db)
     option_device = ""
@@ -92,15 +95,13 @@ def login_form(db: Session = Depends(get_db)):
     for color in colors:
         option_color += f"<option value='{color.id}'>{color.hex_code}</option>"
 
-    username = get_user_by_id(db, current_user_id)
-
     return HTMLResponse(f"""
     <html>
         <head>
             <title>Matching device and color</title>
         </head>
         <body>
-            <h2>Профиль: {username}</h2>
+            <h2>Профиль: {current_user_name}</h2>
             <a href="/add_device" style="margin-right: 20px">Добавить устройство</a>
             <a href="/add_color" style="margin-right: 50px">Добавить комбинацию цветов</a>
             <a href="/">Выход</a>
@@ -108,12 +109,10 @@ def login_form(db: Session = Depends(get_db)):
             <form action="/processing_matching" method="post">
                 <label for="devices">Устройства</label><br>
                 <select id="devices" name="devices">
-                    <option value="device1">Устройство 1</option>
                     {option_device}
                 </select><br><br>
                 <label for="colors">Комбинации цветов</label><br>
                 <select id="colors" name="colors">
-                    <option value="red">Красный</option>
                     {option_color}
                 </select><br><br>
                 <input type="submit" value="Соотнести">
@@ -124,18 +123,17 @@ def login_form(db: Session = Depends(get_db)):
 
 @router.get("/add_device")
 def add_device(db: Session = Depends(get_db)):
-    username = get_user_by_id(db, current_user_id)
     return HTMLResponse(f"""
     <html>
         <head>
             <title>Add device</title>
         </head>
         <body>
-            <h2>Профиль: {username}</h2>
+            <h2>Профиль: {current_user_name}</h2>
             <h3>Добавить устройство</h3>
             <form action="/аdding_device" method="post">
                 <label for="name">Название</label><br>
-                <input type="text" id="name" name="name" required"><br><br>
+                <input type="text" id="name" name="name" required placeholder="esp8266"><br><br>
                 <input type="submit" value="Добавить">
             </form>
         </body>
@@ -149,6 +147,34 @@ def аdding_device(name: str = Form(...), db: Session = Depends(get_db)):
         create_device(db, device)
     else:
         raise HTTPException(status_code=401, detail="Such a device already exists")
+    return RedirectResponse("/devices_colors")
+
+@router.get("/add_color")
+def add_color(db: Session = Depends(get_db)):
+    return HTMLResponse(f"""
+    <html>
+        <head>
+            <title>Add color</title>
+        </head>
+        <body>
+            <h2>Профиль: {current_user_name}</h2>
+            <h3>Добавить комбинацию цветов</h3>
+            <form action="/аdding_color" method="post">
+                <label for="hex_code">Комбинация цветов (Hex)</label><br>
+                <input type="text" id="hex_code" name="hex_code" required placeholder="#333333#f6a4d4#f23e3e"><br><br>
+                <input type="submit" value="Добавить">
+            </form>
+        </body>
+    </html>
+    """)
+
+@router.post("/аdding_color")
+def аdding_color(hex_code: str = Form(...), db: Session = Depends(get_db)):
+    color = Color(hex_code=hex_code)
+    if not get_color_by_name(db, color):
+        create_color(db, color)
+    else:
+        raise HTTPException(status_code=401, detail="Such a color already exists")
     return RedirectResponse("/devices_colors")
 
 

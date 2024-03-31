@@ -33,9 +33,7 @@ def _password_hashing(password):
 def create_user(db: Session, user: UserBase):
     user.password = _password_hashing(user.password)
     db_user = User(username=user.username, password=user.password)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
+    add_row(db, db_user)
     return True
 
 def get_user_by_username_and_password(db: Session, user: UserBase):
@@ -64,11 +62,23 @@ def get_device_by_name(db: Session, device: DeviceBase):
 
 def create_device(db: Session, device: DeviceBase):
     db_device = Device(id_user=device.id_user, name=device.name)
-    db.add(db_device)
-    db.commit()
-    db.refresh(db_device)
+    add_row(db, db_device)
     return True
 
 def get_colors(db: Session):
     colors = db.query(Color).all()
     return colors
+
+def get_color_by_name(db: Session, color: ColorBase):
+    color1 = db.query(Color).filter(Color.hex_code == color.hex_code).first()
+    return bool(color1)
+
+def create_color(db: Session, color: ColorBase):
+    db_color = Color(hex_code=color.hex_code)
+    add_row(db, db_color)
+    return True
+
+def add_row(db: Session, db_row):
+    db.add(db_row)
+    db.commit()
+    db.refresh(db_row)
