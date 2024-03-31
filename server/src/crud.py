@@ -40,15 +40,35 @@ def create_user(db: Session, user: UserBase):
 
 def get_user_by_username_and_password(db: Session, user: UserBase):
     user.password = _password_hashing(user.password)
-    user = db.query(User).filter(User.username == user.username, User.password == user.password).first()
-    if user is not None:
-        return user.id
+    user1 = db.query(User).filter(User.username == user.username, User.password == user.password).first()
+    if user1 is not None:
+        return user1.id
     else:
         return None
     
 def get_user_by_username(db: Session, user: UserBase):
-    user = db.query(User).filter(User.username == user.username).first()
-    if user is not None:
-        return False
-    else:
-        return True
+    user1 = db.query(User).filter(User.username == user.username).first()
+    return bool(user1)
+    
+def get_user_by_id(db: Session, id_user):
+    user = db.query(User).filter(User.id == id_user).first()
+    return user.username
+    
+def get_devices(db: Session, current_user_id):
+    devices = db.query(Device).filter(Device.id_user == current_user_id).all()
+    return devices
+
+def get_device_by_name(db: Session, device: DeviceBase):
+    device1 = db.query(Device).filter(Device.name == device.name).first()
+    return bool(device1)
+
+def create_device(db: Session, device: DeviceBase):
+    db_device = Device(id_user=device.id_user, name=device.name)
+    db.add(db_device)
+    db.commit()
+    db.refresh(db_device)
+    return True
+
+def get_colors(db: Session):
+    colors = db.query(Color).all()
+    return colors

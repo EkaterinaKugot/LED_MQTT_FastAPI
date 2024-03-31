@@ -5,6 +5,7 @@ class UserBase(BaseModel):
     password: str
 
 class DeviceBase(BaseModel):
+    id_user: int
     name: str
 
 class ColorBase(BaseModel):

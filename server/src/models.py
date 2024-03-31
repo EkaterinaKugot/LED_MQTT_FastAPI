@@ -8,13 +8,16 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     username = Column(String)
     password = Column(String)
+    devices = relationship("Device", back_populates="user")
 
 class Device(Base):
     __tablename__ = "devices"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id_user = Column(Integer, ForeignKey('users.id'))
     name = Column(String)
 
+    user = relationship("User", back_populates="devices")
     device_colors = relationship("DeviceColor", back_populates="device")
 
 class Color(Base):
