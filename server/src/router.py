@@ -83,8 +83,7 @@ def processing_registration(username: str, password: str, db: Session = Depends(
     return RedirectResponse("/")
     
 @router.post("/devices_colors")
-def login_form(db: Session = Depends(get_db)):
-    global current_user_name
+def devices_colors_form(db: Session = Depends(get_db)):
     devices = get_devices(db, current_user_id)
     colors = get_colors(db)
     option_device = ""
@@ -94,6 +93,12 @@ def login_form(db: Session = Depends(get_db)):
     option_color = ""
     for color in colors:
         option_color += f"<option value='{color.id}'>{color.hex_code}</option>"
+
+    d_c = get_devices_colors(db, current_user_id)
+    devices_colors = ""
+    for device, color in d_c:
+        devices_colors += f"<div>{device.name}: {color.hex_code}</div>"
+
 
     return HTMLResponse(f"""
     <html>
@@ -117,9 +122,17 @@ def login_form(db: Session = Depends(get_db)):
                 </select><br><br>
                 <input type="submit" value="Соотнести">
             </form>
+            <h3>Устройство: цвета</h3>
+            {devices_colors}
         </body>
     </html>
     """)
+
+@router.post("/processing_matching")
+def processing_matching(devices: int = Form(...), colors: int = Form(...), db: Session = Depends(get_db)):
+    d_c = DeviceColorBase(device_id=devices, color_id=colors)
+    add_device_color(db, d_c)
+    return RedirectResponse("/devices_colors")
 
 @router.get("/add_device")
 def add_device(db: Session = Depends(get_db)):
@@ -180,4 +193,14 @@ def аdding_color(hex_code: str = Form(...), db: Session = Depends(get_db)):
 
 @router.get("/admin")
 def pub_devices_colors(db: Session = Depends(get_db)):
-    return get_devices_colors(db)
+    d_c = get_devices_colors(db)
+    data = []
+    for row in d_c:
+        device, color = row
+        data.append({
+            "device_id": device.id,
+            "device_name": device.name,
+            "color_id": color.id,
+            "color_hex_code": color.hex_code
+        })
+    return data

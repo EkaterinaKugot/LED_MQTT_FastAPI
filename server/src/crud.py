@@ -5,25 +5,25 @@ from typing import Dict, List
 from sqlalchemy import select, func
 import hashlib
 
-md5_hash = hashlib.new('md5')
+def get_devices_colors(db: Session, current_user_id = -1):
+    if current_user_id == -1:
+        query = (
+        select(Device, Color)
+        .join(DeviceColor, Device.id == DeviceColor.device_id)
+        .join(Color, DeviceColor.color_id == Color.id)
+        .order_by(Device.id, Color.id)
+        )
+    else:
+        query = (
+            select(Device, Color)
+            .join(DeviceColor, Device.id == DeviceColor.device_id)
+            .join(Color, DeviceColor.color_id == Color.id)
+            .where(Device.id_user == current_user_id)
+            .order_by(Device.id, Color.id)
+        )
+    result = db.execute(query)
 
-def get_devices_colors(db: Session) -> Dict[int, List[str]]:
-    devices_colors_dict = {"1": 'putple'}
-
-    # query = (
-    #     select(Device, Color)
-    #     .join(DeviceColor, Device.id == DeviceColor.device_id)
-    #     .join(Color, DeviceColor.color_id == Color.id)
-    #     .order_by(Device.id, Color.id)
-    # )
-    # result = db.execute(query)
-
-    # for device, color in result:
-    #     if device.id not in devices_colors_dict:
-    #         devices_colors_dict[device.id] = []
-    #     devices_colors_dict[device.id].append(color.hex_code)
-
-    return devices_colors_dict
+    return result
 
 def _password_hashing(password):
     md5_hash = hashlib.new('md5')
@@ -82,3 +82,12 @@ def add_row(db: Session, db_row):
     db.add(db_row)
     db.commit()
     db.refresh(db_row)
+
+def deleting_repeat(db: Session, d_c: DeviceColorBase):
+    d_c1 = db.query(DeviceColor).filter(DeviceColor.device_id ==d_c.device_id).delete()
+    db.commit()
+
+def add_device_color(db: Session, d_c: DeviceColorBase):
+    deleting_repeat(db, d_c)
+    device_color = DeviceColor(device_id=d_c.device_id, color_id=d_c.color_id)
+    add_row(db, device_color)
