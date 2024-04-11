@@ -6,5 +6,5 @@ import asyncio
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="192.168.31.145", port=8005)
+    uvicorn.run(app, host="192.168.7.127", port=8005)
    

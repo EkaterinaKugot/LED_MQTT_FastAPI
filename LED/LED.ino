@@ -1,14 +1,28 @@
+#define FASTLED_ESP8266_RAW_PIN_ORDER
+#define FASTLED_ESP8266_NODEMCU_PIN_ORDER
+#define FASTLED_ALLOW_INTERRUPTS 0
+
+#define FASTLED_SPI_DEVICE 1
+#define FASTLED_SPI_BYTE_ORDER 0
+#define FASTLED_SPI_BIT_ORDER 1
+#define FASTLED_USE_SPI 1
+
+#define FASTLED_DATA_RATE_KHZ 1000
+#define FASTLED_SPI_CLOCK_MHZ 26
+#define FASTLED_HAVE_HWSPI
+
+
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <FastLED.h>
 
 #define DATA_PIN 4
-#define NUM_LEDS 16
+#define NUM_LEDS 11
 
 CRGB leds[NUM_LEDS];
 
-const char* ssid = "Papa_i_papa";
-const char* password = "720804614";
+const char* ssid = "zababulin";
+const char* password = "12345678";
 const char* mqtt_server = "broker.emqx.io";
 const char* client_id = "esp8255";
 
@@ -39,16 +53,26 @@ void callback(char* topic, byte* payload, unsigned int length) {
   for (int i = 0; i < length; i++) {
     colorString += (char)payload[i];
   }
+  FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
   
   Serial.println(colorString);
-  for (int i = 0; i < NUM_LEDS; i++) {
-    String colorCode = colorString.substring(i * 7, (i + 1) * 7);  // Каждый код цвета состоит из 7 символов
+ for (int i = 0; i < NUM_LEDS; i++) {
+    String colorCode = colorString.substring(i * 7 + 1, (i + 1) * 7);  // Подстрока с 1 по 6 символы каждого кода цвета
     long colorValue = strtol(colorCode.c_str(), NULL, 16);  // Преобразуем строку в цветовой код
-    leds[i] = CRGB(colorValue >> 16, (colorValue >> 8) & 0xFF, colorValue & 0xFF);  // Извлекаем значения R, G, B из цветового кода
-  }
+    // Serial.print("R: ");
+    // Serial.print((colorValue >> 16) & 0xFF, HEX);
+    // Serial.print(", G: ");
+    // Serial.print((colorValue >> 8) & 0xFF, HEX);
+    // Serial.print(", B: ");
+    // Serial.println(colorValue & 0xFF, HEX);
+    leds[i] = CRGB((colorValue >> 16) & 0xFF, (colorValue >> 8) & 0xFF, colorValue & 0xFF);  // Извлекаем значения R, G, B из цветового кода
+}
+  // Serial.print(leds);s
+
+
   
   FastLED.show();
-  // Здесь вы можете добавить код для обработки полученного сообщения
+
 }
 
 void reconnect() {

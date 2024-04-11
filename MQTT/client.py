@@ -4,7 +4,7 @@ import time
 import asyncio
 
 # Адрес сервера
-SERVER_URL = "http://192.168.31.145:8005"
+SERVER_URL = "http://192.168.7.127:8005"
 
 # MQTT брокер
 MQTT_BROKER = "broker.emqx.io"
@@ -21,7 +21,7 @@ async def get_combination_data():
 
 # Функция для отправки комбинации цветов по MQTT
 def send_color_to_device(device_name, color_hex_code):
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    client = mqtt.Client()
     client.connect(MQTT_BROKER)
 
     topic = f"{MQTT_TOPIC_PREFIX}{device_name}"
